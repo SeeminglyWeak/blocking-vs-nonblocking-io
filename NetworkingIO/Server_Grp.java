@@ -1,4 +1,4 @@
-package NetworkingIO;
+package Networking_Project.NetworkingIO;
 
 import java.io.*;
 import java.net.Socket;

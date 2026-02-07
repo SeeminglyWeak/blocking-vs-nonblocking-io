@@ -3,7 +3,7 @@
 * After reading the data in the thread, it will use a buffer to pass it on to every other client connected.
 */
 
-package NetworkingNIO;
+package Networking_Project.NetworkingNIO;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -46,7 +46,7 @@ class server_Read implements Runnable{
 
                 int bytes;
                 String data = "";
-                while((bytes = client.read(buffer)) > 0){ // Gaurds against the client disconnected or no data is left in the buffer
+                while((bytes = client.read(buffer)) > 0){ // Guards against the client disconnected or no data is left in the buffer
                     buffer.flip();
                     data += StandardCharsets.UTF_8.decode(buffer);
                     buffer.clear();
@@ -61,10 +61,10 @@ class server_Read implements Runnable{
 
                 server_Write.data.put(new wrapper(data,client));
             } catch (InterruptedException e) {
-                // Will decide the fail safe after!
+                // Will decide the fail-safe after!
                 e.printStackTrace();
             } catch (IOException i) {
-                // Will decide the fail safe after!
+                // Will decide the fail-safe after!
                 i.printStackTrace();
             }
         }
@@ -72,7 +72,7 @@ class server_Read implements Runnable{
 
 }
 
-//Already initalized the writer thread starting point!
+//Already initialized the writer thread starting point!
 class server_Write implements Runnable{
     Thread t;
     ByteBuffer write = ByteBuffer.allocateDirect(1024 * 512);
@@ -88,6 +88,7 @@ class server_Write implements Runnable{
     @Override
     public void run(){
         while(true){
+            write.clear();
             wrapper sender = null;
             try {
                 sender = data.take();
@@ -109,11 +110,10 @@ class server_Write implements Runnable{
 
                 write.flip();
                 try {
-                    client.write(write); // Does not remove the bytes from the buffer while writng but only reads them into the channel
+                    client.write(write); // Does not remove the bytes from the buffer while writing but only reads them into the channel
                 } catch (IOException e) {
-                    // Client might have closed the connection or either some other connection so its better to close the channel itself!
-                    SelectionKey key = (SelectionKey) check;
-                    key.cancel();
+                    // Client might have closed the connection or either some other connection so it's better to close the channel itself!
+                    check.cancel();
                     try {
                         client.close(); // Important cuz the socket channel from our side is still open
                     } catch (IOException ex) {}

@@ -1,4 +1,4 @@
-package NetworkingNIO;
+package Networking_Project.NetworkingNIO;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -69,7 +69,7 @@ public class Server {
                             System.out.println("Reading from a client!");
                             server_Read.keys.put(key);
                         } catch (InterruptedException e) {
-                            // Will decide the fail safe after!
+                            // Will decide the fail-safe after!
                             e.printStackTrace();
                         }
                     }
@@ -78,7 +78,7 @@ public class Server {
                 }
             }
         } catch (IOException e) {
-            // Will decide the fail safe after!
+            // Will decide the fail-safe after!
             e.printStackTrace();
         }
     }

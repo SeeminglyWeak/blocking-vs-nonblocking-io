@@ -1,4 +1,4 @@
-package NetworkingIO;
+package Networking_Project.NetworkingIO;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;
