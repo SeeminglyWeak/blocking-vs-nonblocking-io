@@ -61,12 +61,11 @@ public class Server {
 
                     if(key.isAcceptable()){
                         //Accepting the client join request by the main thread
-                        System.out.println("Accepting a client!");
                         accepting_client(key);
                     }else if(key.isReadable()){
                         //Giving the work of reading from the specific client to another thread
                         try {
-                            System.out.println("Reading from a client!");
+                            key.interestOps(0); // Disabling the interest OP
                             server_Read.keys.put(key);
                         } catch (InterruptedException e) {
                             // Will decide the fail-safe after!
@@ -88,5 +87,6 @@ public class Server {
 Bugs Encountered :
 1. Did not set the blocking mode of the new client joining
 2. Telnet sending each char one by one and not by enter
-3.
+3. Thowing buffer overflow exception because i was not clearing the buffer in the Server_write
+4. When a client was disconnecting the interest OP for reading the EOF was fired many times till the message was actually read
 */

@@ -59,6 +59,8 @@ class server_Read implements Runnable{
                     continue;
                 }
 
+                key.interestOps(SelectionKey.OP_READ); //Reassigning the interest OP
+
                 server_Write.data.put(new wrapper(data,client));
             } catch (InterruptedException e) {
                 // Will decide the fail-safe after!
