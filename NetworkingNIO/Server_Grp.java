@@ -11,28 +11,34 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 class wrapper{
-    String msg;
+    String msg, name;
     SocketChannel sender;
 
-    wrapper(String msg, SocketChannel sender){
-        this.msg = msg;
+    wrapper(String name,SocketChannel sender){
+        this.name = name;
         this.sender = sender;
     }
 
+    void setMsg(String data){
+        data = name + " : " + data;
+        this.msg = data;
+    }
 }
 
-// Already configured when it is gonna be initialized
 class server_Read implements Runnable{
     Thread t;
     static BlockingQueue<SelectionKey> keys = new LinkedBlockingQueue<>();
+    Map<SelectionKey,wrapper> saved_clients = new HashMap<>();
 
     server_Read(){
-        t = new Thread(this);
+        t = new Thread(this,"Reader");
         t.start();
     }
 
@@ -53,28 +59,34 @@ class server_Read implements Runnable{
                 }
                 System.out.println("Data received -> " + data); // Debug statement!
                 if(bytes == -1){
-                    System.out.println("client disconnected from -> " + client.getRemoteAddress());
+                    System.out.println("Client disconnected from -> " + client.getRemoteAddress());
                     client.close();
                     key.cancel();
                     continue;
                 }
 
                 key.interestOps(SelectionKey.OP_READ); //Reassigning the interest OP
+                key.selector().wakeup();
 
-                server_Write.data.put(new wrapper(data,client));
-            } catch (InterruptedException e) {
+                if(!saved_clients.containsKey(key)){
+                    saved_clients.put(key,new wrapper(data.trim(),client));
+                    continue;
+                }
+
+                wrapper message = saved_clients.get(key);
+                message.setMsg(data);
+                server_Write.data.put(message);
+            } catch (InterruptedException | IOException e) {
                 // Will decide the fail-safe after!
                 e.printStackTrace();
-            } catch (IOException i) {
-                // Will decide the fail-safe after!
-                i.printStackTrace();
+            } catch (Exception e) {
+                System.out.println("Some Exception occurred in server_Write");
             }
         }
     }
 
 }
 
-//Already initialized the writer thread starting point!
 class server_Write implements Runnable{
     Thread t;
     ByteBuffer write = ByteBuffer.allocateDirect(1024 * 512);
@@ -83,7 +95,7 @@ class server_Write implements Runnable{
 
     server_Write(Selector selector){
         this.selector = selector;
-        t = new Thread(this);
+        t = new Thread(this,"Writer");
         t.start();
     }
 
@@ -95,11 +107,10 @@ class server_Write implements Runnable{
             try {
                 sender = data.take();
                 System.out.println("Data received by the write thread in queue -> " + sender.msg);
-                byte[] arr = sender.msg.getBytes(StandardCharsets.UTF_8); // Still need to think about the size problem
-                write.put(arr); // Wrap does not work here as it returns a new bytebuffer
+                write.put(sender.msg.getBytes(StandardCharsets.UTF_8));
             } catch (InterruptedException e) {
                 e.printStackTrace();
-
+                //No fail-safe right now!
             }
             Iterator<SelectionKey> itr = selector.keys().iterator();
             SocketChannel client;
@@ -119,6 +130,8 @@ class server_Write implements Runnable{
                     try {
                         client.close(); // Important cuz the socket channel from our side is still open
                     } catch (IOException ex) {}
+                } catch (Exception e) {
+                    System.out.println("Some Exception occurred in server_Write");
                 }
             }
         }
