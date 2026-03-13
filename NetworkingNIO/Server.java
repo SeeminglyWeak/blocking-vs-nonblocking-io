@@ -105,11 +105,3 @@ public class Server {
         }
     }
 }
-
-/*
-Bugs Encountered :
-1. Did not set the blocking mode of the new client joining
-2. Telnet sending each char one by one and not by enter
-3. Throwing buffer overflow exception because I was not clearing the buffer in the Server_write
-4. When a client was disconnecting the interest OP for reading the EOF was fired many times till the message was actually read
-*/
