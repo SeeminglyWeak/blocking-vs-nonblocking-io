@@ -55,7 +55,6 @@ public class Server {
                 while(true) {
                     try {
                         SelectionKey key = accept_keys.take();
-                        System.out.println("Took the key!");
                         accepting_client(key);
                     } catch (InterruptedException e) { }
                 }
@@ -80,7 +79,6 @@ public class Server {
 
                     if(key.isAcceptable()){
                         //Accepting the client join request by the main thread
-                        System.out.println("Accepting client!");
                         key.interestOps(0);
                         accept_keys.put(key);
                     }else if(key.isReadable()){
@@ -88,7 +86,7 @@ public class Server {
                         try {
                             System.out.println("Reading from a client!");
                             key.interestOps(0); // Disabling the interest OP
-                            server_Read.keys.put(key);
+                            server_Read.key_Queue.put(key);
                         } catch (InterruptedException e) {
                             // Will decide the fail-safe after!
                             e.printStackTrace();

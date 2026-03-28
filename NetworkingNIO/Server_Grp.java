@@ -34,19 +34,19 @@ class wrapper{
 
 class server_Read implements Runnable{
     Thread t;
-    static BlockingQueue<SelectionKey> keys = new LinkedBlockingQueue<>();
+    static BlockingQueue<SelectionKey> key_Queue = new LinkedBlockingQueue<>();
     Map<SelectionKey,wrapper> saved_clients = new HashMap<>();
 
     server_Read(){
         t = new Thread(this,"Reader");
-        t.start();
+        t.start(); // Need to shift this!
     }
 
     @Override
     public void run() {
         while(true){
             try {
-                SelectionKey key = keys.take();
+                SelectionKey key = key_Queue.take();
                 SocketChannel client = (SocketChannel) key.channel();
                 ByteBuffer buffer = (ByteBuffer) key.attachment();
 
@@ -54,7 +54,7 @@ class server_Read implements Runnable{
                 String data = "";
                 while((bytes = client.read(buffer)) > 0){ // Guards against the client disconnected or no data is left in the buffer
                     buffer.flip();
-                    data += StandardCharsets.UTF_8.decode(buffer);
+                    data += StandardCharsets.US_ASCII.decode(buffer);
                     buffer.clear();
                 }
                 System.out.println("Data received -> " + data); // Debug statement!
@@ -96,7 +96,7 @@ class server_Write implements Runnable{
     server_Write(Selector selector){
         this.selector = selector;
         t = new Thread(this,"Writer");
-        t.start();
+        t.start(); // Need to shift this!
     }
 
     @Override
