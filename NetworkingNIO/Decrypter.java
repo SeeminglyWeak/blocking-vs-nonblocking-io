@@ -32,31 +32,18 @@ class Decrypter implements Runnable{
         Thread.currentThread().interrupt();
     }
 
-    private void decrypt(int offset){
+    private void decrypt () {
         Random random = new Random(seed);
-        int [] bounded_int = new int[offset];
-        for (int i = 0; i < offset; i++) bounded_int[i] = random.nextInt(256);
         byte modified;
         // XORing
         while(byteBuffer.hasRemaining()){
             modified = byteBuffer.get();
+            int bounded_int = random.nextInt(256);
             modified = (byte) ((modified & 0xFF) ^ random.nextInt());
-            byteBuffer.put(byteBuffer.position() - 1, modified);
-        }
-        byteBuffer.reset();
-        // Substution
-        int i = 0;
-        while(byteBuffer.hasRemaining()){
-            modified = byteBuffer.get();
-            modified = (byte) ((modified & 0xFF) + bounded_int[i]);
-            byteBuffer.put(byteBuffer.position() - 1, modified);
-            i++;
-        }
-        byteBuffer.reset();
-        // Skipping 
-        while(byteBuffer.hasRemaining()){
-            modified = byteBuffer.get();
-            modified = (byte) (((modified & 0xFF) << (message_received % 8)) | ((modified & 0xFF) >> (8 - (message_received % 8))));
+            // Substution  
+            modified = (byte) ((modified & 0xFF) + bounded_int);
+            // Skipping 
+            modified = (byte) (((modified & 0xFF) << (8 - (message_received % 8))) | ((modified & 0xFF) >> (message_received % 8)));
             byteBuffer.put(byteBuffer.position() - 1, modified);  
         }
         byteBuffer.reset();
@@ -120,7 +107,7 @@ class Decrypter implements Runnable{
                 bytes_read = num = 0;
                 byteBuffer.position(4);
                 byteBuffer.mark();
-                decrypt(length);
+                decrypt();
                 CharacterSet_decoder.decode(byteBuffer,charBuffer,true);
                 charBuffer.flip();
                 out.write(charBuffer.array());

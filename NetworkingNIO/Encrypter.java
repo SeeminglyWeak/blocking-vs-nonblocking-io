@@ -29,23 +29,13 @@ class Encrypter implements Runnable{
     private void encrypt(){
         Random random = new Random(seed);
         byte modified;
-        // Skipping
         while(byteBuffer.hasRemaining()){
+            // Skipping
             modified = byteBuffer.get();
             modified = (byte) (((modified & 0xFF) << (message_sent % 8)) | ((modified & 0xFF) >> (8 - (message_sent % 8))));
-            byteBuffer.put(byteBuffer.position() - 1, modified);
-        }
-        byteBuffer.rewind();
-        // Substitution
-        while(byteBuffer.hasRemaining()){
-            modified = byteBuffer.get();
+            // Substitution
             modified = (byte) ((modified & 0xFF) - random.nextInt(256)); 
-            byteBuffer.put(byteBuffer.position() - 1, modified);
-        }
-        byteBuffer.rewind();
-        // XORing
-        while(byteBuffer.hasRemaining()){
-            modified = byteBuffer.get();
+            // XORing
             modified = (byte) ((modified & 0xFF) ^ random.nextInt());
             byteBuffer.put(byteBuffer.position() - 1, modified);
         }
